@@ -1,0 +1,17 @@
+<Project>
+  <Import Project="../build/packageInfo.props" />
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable Condition="'$(Nullable)'==''">enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VersionMajor>1</VersionMajor>
+    <VersionMinor>5</VersionMinor>
+    <VersionPatch>3</VersionPatch>
+    <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionPatch)</VersionPrefix>
+    <VersionSuffix Condition="'$(Configuration)'=='DEBUG'">preview</VersionSuffix>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Condition="'$(OS)' == 'Windows_NT'" Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+  </ItemGroup>
+</Project>

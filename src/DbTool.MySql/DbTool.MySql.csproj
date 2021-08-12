@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>DbTool.DbProvider.MySql</RootNamespace>
+    <AssemblyName>DbTool.DbProvider.MySql</AssemblyName>
+    <Description>
+      DbTool MySql DbProvider
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.0.23" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DbTool.Core\DbTool.Core.csproj" />
+  </ItemGroup>
+</Project>
