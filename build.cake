@@ -111,7 +111,7 @@ Task("pack")
          NoRestore = true,
          NoBuild = true
       };
-      if(branchName != "master" && stable != "true"){
+      if(branchName != "main" && stable != "true"){
          settings.VersionSuffix = $"preview-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
       }
       foreach (var project in srcProjects)
