@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
     <Title>DbTool.Core</Title>
     <PackageId>DbTool.Core</PackageId>
     <PackageTags>DbTool,code-generator,tools</PackageTags>
@@ -22,8 +21,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="1.60.6" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
-    <PackageReference Include="WeihanLi.Common" Version="1.0.46" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+    <PackageReference Include="WeihanLi.Common" Version="1.0.47" />
   </ItemGroup>
 </Project>

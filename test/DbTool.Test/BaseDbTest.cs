@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DbTool.Core;
 using DbTool.Core.Entity;
@@ -24,7 +25,7 @@ namespace DbTool.Test
             DbProvider = dbProviderFactory.GetDbProvider(DbType);
         }
 
-        protected TableEntity TableEntity = new()
+        protected readonly TableEntity TableEntity = new()
         {
             TableName = "tabUser111",
             TableDescription = "测试用户表",
@@ -104,6 +105,19 @@ namespace DbTool.Test
             Assert.NotEmpty(sql1);
 
             Assert.NotEqual(sql1, sql);
+        }
+
+
+        public virtual void DbType2ClrTypeTest(string dbType, bool isNullable, string expectedType)
+        {
+            var result = DbProvider.DbType2ClrType(dbType, isNullable);
+            Assert.Equal(expectedType, result);
+        }
+
+        public virtual void ClrType2DbTypeTest(Type clrType, string expectedType)
+        {
+            var result = DbProvider.ClrType2DbType(clrType);
+            Assert.Equal(expectedType, result);
         }
     }
 }

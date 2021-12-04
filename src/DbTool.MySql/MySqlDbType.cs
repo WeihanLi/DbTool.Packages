@@ -24,6 +24,7 @@
         SmallDateTime,
         SmallInt,
         SmallMoney,
+        MediumText,
         Text,
         LongText,
         Time,

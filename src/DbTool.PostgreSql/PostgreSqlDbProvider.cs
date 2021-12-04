@@ -89,7 +89,7 @@ ORDER BY attnum
                 InternalDbType.Timestamp => isNullable ? "DateTime?" : "DateTime",
                 InternalDbType.TimeZ => isNullable ? "DateTimeOffset?" : "DateTimeOffset",
                 InternalDbType.TimestampZ => isNullable ? "DateTimeOffset?" : "DateTimeOffset",
-                _ => "object"
+                _ => "string"
             };
             return type;
         }

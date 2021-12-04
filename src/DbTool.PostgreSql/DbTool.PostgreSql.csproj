@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>DbTool.DbProvider.PostgreSql</RootNamespace>
     <AssemblyName>DbTool.DbProvider.PostgreSql</AssemblyName>
     <Description>
@@ -11,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DbTool.Core\DbTool.Core.csproj" />
-    <PackageReference Include="Npgsql" Version="5.0.3" />
+    <PackageReference Include="Npgsql" Version="6.0.1" />
   </ItemGroup>
 
 </Project>

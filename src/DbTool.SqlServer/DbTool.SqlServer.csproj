@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>DbTool.DbProvider.SqlServer</RootNamespace>
     <AssemblyName>DbTool.DbProvider.SqlServer</AssemblyName>
     <Description>
@@ -8,7 +7,7 @@
     </Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.0" />
     <ProjectReference Include="..\DbTool.Core\DbTool.Core.csproj" />
   </ItemGroup>
 </Project>

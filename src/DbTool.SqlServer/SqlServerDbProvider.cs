@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Text;
 using DbTool.Core;
 using DbTool.Core.Entity;
@@ -181,7 +181,7 @@ ORDER BY c.[column_id];
                 InternalDbType.DateTime2 => isNullable ? "DateTime?" : "DateTime",
                 InternalDbType.Time => isNullable ? "TimeSpan?" : "TimeSpan",
                 InternalDbType.DateTimeOffset => isNullable ? "DateTimeOffset?" : "DateTimeOffset",
-                _ => "object"
+                _ => "string"
             };
             return type;
         }
@@ -396,7 +396,7 @@ ORDER BY c.[column_id];
                         }
                     }
                     //
-                    sbSqlText.Append(",");
+                    sbSqlText.Append(',');
                     //
                     if (generateDescription && !string.IsNullOrEmpty(col.ColumnDescription))
                     {

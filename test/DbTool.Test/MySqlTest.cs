@@ -24,5 +24,17 @@ namespace DbTool.Test
         public MySqlTest(IConfiguration configuration, IDbHelperFactory dbHelperFactory, DbProviderFactory dbProviderFactory) : base(configuration, dbHelperFactory, dbProviderFactory)
         {
         }
+
+        [Theory]
+        [InlineData("mediumText", true, "string")]
+        [InlineData("nchar", true, "string")]
+        [InlineData("char", true, "string")]
+        [InlineData("text", true, "string")]
+        [InlineData("int", true, "int?")]
+        [InlineData("int", false, "int")]
+        public override void DbType2ClrTypeTest(string dbType, bool isNullable, string expectedType)
+        {
+            base.DbType2ClrTypeTest(dbType, isNullable, expectedType);
+        }
     }
 }

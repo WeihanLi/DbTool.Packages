@@ -55,13 +55,14 @@ AND table_name = @tableName;";
                 InternalDbType.SmallInt => isNullable ? "int?" : "int",
                 InternalDbType.Int => isNullable ? "int?" : "int",
                 InternalDbType.BigInt => isNullable ? "long?" : "long",
-                InternalDbType.Char => "string",
-                InternalDbType.NChar => "string",
-                InternalDbType.NText => "string",
-                InternalDbType.NVarChar => "string",
-                InternalDbType.VarChar => "string",
-                InternalDbType.Text => "string",
-                InternalDbType.LongText => "string",
+                InternalDbType.Char
+                or InternalDbType.NChar
+                or InternalDbType.NText
+                or InternalDbType.NVarChar
+                or InternalDbType.VarChar
+                or InternalDbType.MediumText
+                or InternalDbType.Text
+                or InternalDbType.LongText => "string",
                 InternalDbType.Numeric => isNullable ? "decimal?" : "decimal",
                 InternalDbType.Money => isNullable ? "decimal?" : "decimal",
                 InternalDbType.Decimal => isNullable ? "decimal?" : "decimal",
@@ -73,7 +74,7 @@ AND table_name = @tableName;";
                 InternalDbType.DateTime2 => isNullable ? "DateTime?" : "DateTime",
                 InternalDbType.Time => isNullable ? "TimeSpan?" : "TimeSpan",
                 InternalDbType.DateTimeOffset => isNullable ? "DateTimeOffset?" : "DateTimeOffset",
-                _ => "object"
+                _ => "string"
             };
             return type;
         }
@@ -200,14 +201,6 @@ AND table_name = @tableName;";
                 case InternalDbType.UniqueIdentifier:
                     len = 16;
                     break;
-
-                    //case DbType.VarBinary:
-                    //case DbType.VarChar:
-                    //case DbType.Variant:
-                    //case DbType.Xml:
-                    //case DbType.Structured:
-                    //default:
-                    //  break;
             }
             return len;
         }
