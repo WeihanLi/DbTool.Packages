@@ -264,7 +264,7 @@ AND table_name = @tableName;";
                         sbSqlText.Append($" COMMENT '{col.ColumnDescription}'");
                     }
 
-                    sbSqlText.Append(",");
+                    sbSqlText.Append(',');
                 }
                 sbSqlText.Remove(sbSqlText.Length - 1, 1);
                 sbSqlText.AppendLine();

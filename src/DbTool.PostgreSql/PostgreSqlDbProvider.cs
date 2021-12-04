@@ -98,41 +98,20 @@ ORDER BY attnum
         {
             var typeFullName = type.Unwrap().FullName;
 
-            switch (typeFullName)
+            return typeFullName switch
             {
-                case "System.Boolean":
-                    return InternalDbType.Boolean.ToString();
-
-                case "System.Int16":
-                    return InternalDbType.SmallInt.ToString();
-
-                case "System.Int32":
-                    return InternalDbType.Integer.ToString();
-
-                case "System.Int64":
-                    return InternalDbType.BigInt.ToString();
-
-                case "System.Single":
-                    return InternalDbType.Real.ToString();
-
-                case "System.Double":
-                    return InternalDbType.Double.ToString();
-
-                case "System.Decimal":
-                    return InternalDbType.Decimal.ToString();
-
-                case "System.DateTime":
-                    return InternalDbType.Timestamp.ToString();
-
-                case "System.DateTimeOffset":
-                    return InternalDbType.TimestampZ.ToString();
-
-                case "System.Guid":
-                    return InternalDbType.Uuid.ToString();
-
-                default:
-                    return InternalDbType.VarChar.ToString();
-            }
+                "System.Boolean" => InternalDbType.Boolean.ToString(),
+                "System.Int16" => InternalDbType.SmallInt.ToString(),
+                "System.Int32" => InternalDbType.Integer.ToString(),
+                "System.Int64" => InternalDbType.BigInt.ToString(),
+                "System.Single" => InternalDbType.Real.ToString(),
+                "System.Double" => InternalDbType.Double.ToString(),
+                "System.Decimal" => InternalDbType.Decimal.ToString(),
+                "System.DateTime" => InternalDbType.Timestamp.ToString(),
+                "System.DateTimeOffset" => InternalDbType.TimestampZ.ToString(),
+                "System.Guid" => InternalDbType.Uuid.ToString(),
+                _ => InternalDbType.VarChar.ToString(),
+            };
         }
 
         public virtual uint GetDefaultSizeForDbType(string dbType, uint defaultLength = 64)
@@ -232,7 +211,7 @@ ORDER BY attnum
                         sbSqlText.Append($" COMMENT '{col.ColumnDescription}'");
                     }
 
-                    sbSqlText.Append(",");
+                    sbSqlText.Append(',');
                 }
                 sbSqlText.Remove(sbSqlText.Length - 1, 1);
                 sbSqlText.AppendLine();
