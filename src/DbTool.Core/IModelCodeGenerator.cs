@@ -33,6 +33,11 @@ namespace DbTool.Core
         /// 是否使用 NameConverter 将 TableName 转换成 Model class 名称
         /// </summary>
         public bool ApplyNameConverter { get; set; }
+
+        /// <summary>
+        /// 是否启用可空引用类型
+        /// </summary>
+        public bool NullableReferenceTypesEnabled { get; set; }
     }
 
     public interface IModelCodeGenerator

@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using DbTool.Core.Entity;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using DbTool.Core.Entity;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using WeihanLi.Common;
 using WeihanLi.Common.Models;
 using WeihanLi.Extensions;
@@ -20,10 +15,21 @@ namespace DbTool.Core
     public class DefaultCSharpModelCodeExactor : IModelCodeExtractor
     {
         private readonly IModelNameConverter _modelNameConverter;
+        private readonly string _globalUsingsString;
 
         public DefaultCSharpModelCodeExactor(IModelNameConverter modelNameConverter)
         {
             _modelNameConverter = modelNameConverter;
+            _globalUsingsString = new[]
+            {
+                "System",
+                "System.Collections.Generic",
+                "System.IO",
+                "System.Linq",
+                "System.Net.Http",
+                "System.Threading",
+                "System.Threading.Tasks"
+            }.Select(ns => $"global using {ns};").StringJoin(Environment.NewLine);
         }
 
         public Dictionary<string, string> SupportedFileExtensions { get; } = new()
@@ -65,7 +71,12 @@ namespace DbTool.Core
 
         public virtual Task<List<TableEntity>> GetTablesFromSourceText(IDbProvider dbProvider, string sourceText)
         {
-            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, new CSharpParseOptions(LanguageVersion.Latest));
+            var text = @$"{_globalUsingsString}{Environment.NewLine}{sourceText}";
+            var nullableReferenceTypesEnabled = sourceText.Contains("string?")
+                || sourceText.Contains("object?")
+                || sourceText.Contains("null!")
+                || sourceText.Contains("default!");
+            var syntaxTree = CSharpSyntaxTree.ParseText(text, new CSharpParseOptions(LanguageVersion.Latest));
             var references = new[]
                     {
                         typeof(object).Assembly,
@@ -80,34 +91,37 @@ namespace DbTool.Core
                     .Select(l => MetadataReference.CreateFromFile(l))
                     .Cast<MetadataReference>()
                     .ToArray();
-
             var assemblyName = $"DbTool.DynamicGenerated.{GuidIdGenerator.Instance.NewId()}";
             var compilation = CSharpCompilation.Create(assemblyName)
-                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, allowUnsafe: true))
+                .WithOptions(
+                  new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                  .WithNullableContextOptions(nullableReferenceTypesEnabled ? NullableContextOptions.Enable : NullableContextOptions.Disable)
+                )
                 .AddReferences(references)
                 .AddSyntaxTrees(syntaxTree);
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+            var compilationResult = compilation.Emit(ms);
+            if (compilationResult.Success)
             {
-                var compilationResult = compilation.Emit(ms);
-                if (compilationResult.Success)
-                {
-                    var assemblyBytes = ms.ToArray();
-                    return Task.FromResult(GetTablesFromAssembly(Assembly.Load(assemblyBytes), dbProvider));
-                }
-
-                var error = new StringBuilder(compilationResult.Diagnostics.Length * 1024);
-                foreach (var t in compilationResult.Diagnostics)
-                {
-                    error.AppendLine($"{t.GetMessage()}");
-                }
-                throw new ArgumentException($"Compile error:{Environment.NewLine}{error}");
+                var assemblyBytes = ms.ToArray();
+                return Task.FromResult(GetTablesFromAssembly(Assembly.Load(assemblyBytes), dbProvider));
             }
+
+            var error = new StringBuilder();
+            foreach (var t in compilationResult.Diagnostics
+                // .Where(x => x.Severity == DiagnosticSeverity.Error)
+                )
+            {
+                error.AppendLine($"{t.GetMessage()}");
+            }
+            throw new ArgumentException($"Compile error:{Environment.NewLine}{error}");
         }
 
         protected virtual List<TableEntity> GetTablesFromAssembly(Assembly assembly, IDbProvider dbProvider)
         {
-            var tables = new List<TableEntity>(4);
-            foreach (var type in assembly.GetExportedTypes().Where(x => x.IsClass && !x.IsAbstract))
+            var validTypes = assembly.GetExportedTypes().Where(x => x.IsClass && !x.IsAbstract).ToArray();
+            var tables = new List<TableEntity>(validTypes.Length);
+            foreach (var type in validTypes)
             {
                 var tableAttr = type.GetCustomAttribute<TableAttribute>();
                 var table = new TableEntity
@@ -142,7 +156,7 @@ namespace DbTool.Core
                                 : property.PropertyType)
                     };
                     var defaultPropertyValue = property.PropertyType.GetDefaultValue();
-                    if (null == defaultPropertyValue)
+                    if (defaultPropertyValue is null)
                     {
                         // ReferenceType
                         columnInfo.IsNullable = !property.IsDefined(typeof(RequiredAttribute));

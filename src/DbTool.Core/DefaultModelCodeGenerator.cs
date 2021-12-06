@@ -164,7 +164,7 @@ namespace DbTool.Core
             // 首字母大写转成小写
             if (char.IsUpper(propertyName[0]))
             {
-                return char.ToLowerInvariant(propertyName[0]) + propertyName.Substring(1);
+                return $"{char.ToLower(propertyName[0])}{propertyName[1..]}";
             }
 
             return $"_{propertyName}";
