@@ -81,7 +81,7 @@ namespace DbTool.Core
                     {
                         typeof(object).Assembly,
                         typeof(TableAttribute).Assembly,
-                        typeof(ResultModel).Assembly,
+                        typeof(Result).Assembly,
                         typeof(DescriptionAttribute).Assembly,
                         Assembly.Load("netstandard"),
                         Assembly.Load("System.Runtime"),
