@@ -1,23 +1,24 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿// Copyright (c) Weihan Li. All rights reserved.
+// Licensed under the MIT license.
+
 using DbTool.Core;
 using DbTool.Core.Entity;
 
-namespace DbTool.Test
+namespace DbTool.Test;
+
+internal class MockDbHelper : IDbHelper
 {
-    internal class MockDbHelper : IDbHelper
+    public MockDbHelper(IDbProvider dbProvider)
     {
-        public MockDbHelper(IDbProvider dbProvider)
-        {
-            DbType = dbProvider.DbType;
-        }
+        DbType = dbProvider.DbType;
+    }
 
-        public string DbType { get; }
-        public string DatabaseName => "Test";
+    public string DbType { get; }
+    public string DatabaseName => "Test";
 
-        public Task<List<TableEntity>> GetTablesInfoAsync()
-        {
-            return Task.FromResult(new List<TableEntity>()
+    public Task<List<TableEntity>> GetTablesInfoAsync()
+    {
+        return Task.FromResult(new List<TableEntity>()
             {
                 new()
                 {
@@ -25,11 +26,11 @@ namespace DbTool.Test
                     TableDescription = "测试用户表"
                 }
             });
-        }
+    }
 
-        public Task<List<ColumnEntity>> GetColumnsInfoAsync(string tableName)
-        {
-            return Task.FromResult(new List<ColumnEntity>
+    public Task<List<ColumnEntity>> GetColumnsInfoAsync(string tableName)
+    {
+        return Task.FromResult(new List<ColumnEntity>
             {
                 new()
                 {
@@ -78,14 +79,13 @@ namespace DbTool.Test
                     Size = 8
                 }
             });
-        }
     }
+}
 
-    internal class MockDbHelperFactory : IDbHelperFactory
+internal class MockDbHelperFactory : IDbHelperFactory
+{
+    public IDbHelper GetDbHelper(IDbProvider dbProvider, string connectionString)
     {
-        public IDbHelper GetDbHelper(IDbProvider dbProvider, string connectionString)
-        {
-            return new MockDbHelper(dbProvider);
-        }
+        return new MockDbHelper(dbProvider);
     }
 }

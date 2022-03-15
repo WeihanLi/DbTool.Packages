@@ -1,15 +1,17 @@
-﻿namespace DbTool.Core
-{
-    public interface IDbHelperFactory
-    {
-        IDbHelper GetDbHelper(IDbProvider dbProvider, string connectionString);
-    }
+﻿// Copyright (c) Weihan Li. All rights reserved.
+// Licensed under the MIT license.
 
-    public sealed class DbHelperFactory : IDbHelperFactory
+namespace DbTool.Core;
+
+public interface IDbHelperFactory
+{
+    IDbHelper GetDbHelper(IDbProvider dbProvider, string connectionString);
+}
+
+public sealed class DbHelperFactory : IDbHelperFactory
+{
+    public IDbHelper GetDbHelper(IDbProvider dbProvider, string connectionString)
     {
-        public IDbHelper GetDbHelper(IDbProvider dbProvider, string connectionString)
-        {
-            return new DbHelper(dbProvider, connectionString);
-        }
+        return new DbHelper(dbProvider, connectionString);
     }
 }

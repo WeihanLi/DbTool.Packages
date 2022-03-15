@@ -1,4 +1,7 @@
-﻿using DbTool.Core;
+﻿// Copyright (c) Weihan Li. All rights reserved.
+// Licensed under the MIT license.
+
+using DbTool.Core;
 using Xunit;
 
 namespace DbTool.Test;

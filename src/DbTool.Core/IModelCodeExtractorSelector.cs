@@ -1,39 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿// Copyright (c) Weihan Li. All rights reserved.
+// Licensed under the MIT license.
 
-namespace DbTool.Core
+namespace DbTool.Core;
+
+public interface IModelCodeExtractorSelector
 {
-    public interface IModelCodeExtractorSelector
-    {
-        IModelCodeExtractor GetCodeExtractorByExtension(string codeFilePath);
+    IModelCodeExtractor GetCodeExtractorByExtension(string codeFilePath);
 
-        IModelCodeExtractor GetCodeExtractorByCodeType(string codeType);
+    IModelCodeExtractor GetCodeExtractorByCodeType(string codeType);
+}
+
+public sealed class DefaultModelCodeExtractorSelector : IModelCodeExtractorSelector
+{
+    private readonly IModelCodeExtractor[] _codeExtractors;
+
+    public DefaultModelCodeExtractorSelector(IEnumerable<IModelCodeExtractor> codeExtractors)
+    {
+        _codeExtractors = codeExtractors.ToArray();
     }
 
-    public sealed class DefaultModelCodeExtractorSelector : IModelCodeExtractorSelector
+    public IModelCodeExtractor GetCodeExtractorByCodeType(string codeType)
     {
-        private readonly IModelCodeExtractor[] _codeExtractors;
+        return _codeExtractors.LastOrDefault(x => x.CodeType.Equals(codeType, System.StringComparison.OrdinalIgnoreCase))
+                           ?? throw new InvalidOperationException($"No ModelCodeExtractor registered for {codeType}");
+        ;
+    }
 
-        public DefaultModelCodeExtractorSelector(IEnumerable<IModelCodeExtractor> codeExtractors)
-        {
-            _codeExtractors = codeExtractors.ToArray();
-        }
-
-        public IModelCodeExtractor GetCodeExtractorByCodeType(string codeType)
-        {
-            return _codeExtractors.LastOrDefault(x => x.CodeType.Equals(codeType, System.StringComparison.OrdinalIgnoreCase))
-                               ?? throw new InvalidOperationException($"No ModelCodeExtractor registered for {codeType}");
-            ;
-        }
-
-        public IModelCodeExtractor GetCodeExtractorByExtension(string codeFilePath)
-        {
-            var fileExtension = Path.GetExtension(codeFilePath);
-            return _codeExtractors.LastOrDefault(x => x.SupportedFileExtensions.ContainsKey(fileExtension))
-                               ?? throw new InvalidOperationException($"No ModelCodeExtractor registered for {fileExtension}");
-            ;
-        }
+    public IModelCodeExtractor GetCodeExtractorByExtension(string codeFilePath)
+    {
+        var fileExtension = Path.GetExtension(codeFilePath);
+        return _codeExtractors.LastOrDefault(x => x.SupportedFileExtensions.ContainsKey(fileExtension))
+                           ?? throw new InvalidOperationException($"No ModelCodeExtractor registered for {fileExtension}");
+        ;
     }
 }

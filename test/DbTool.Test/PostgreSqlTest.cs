@@ -1,28 +1,29 @@
-﻿using System.Threading.Tasks;
+﻿// Copyright (c) Weihan Li. All rights reserved.
+// Licensed under the MIT license.
+
 using DbTool.Core;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
-namespace DbTool.Test
+namespace DbTool.Test;
+
+public class PostgreSqlTest : BaseDbTest
 {
-    public class PostgreSqlTest : BaseDbTest
+    public override string DbType => "PostgreSql";
+
+    [Fact]
+    public override Task QueryTest()
     {
-        public override string DbType => "PostgreSql";
+        return base.QueryTest();
+    }
 
-        [Fact]
-        public override Task QueryTest()
-        {
-            return base.QueryTest();
-        }
+    [Fact]
+    public override void CreateTest()
+    {
+        base.CreateTest();
+    }
 
-        [Fact]
-        public override void CreateTest()
-        {
-            base.CreateTest();
-        }
-
-        public PostgreSqlTest(IConfiguration configuration, IDbHelperFactory dbHelperFactory, DbProviderFactory dbProviderFactory) : base(configuration, dbHelperFactory, dbProviderFactory)
-        {
-        }
+    public PostgreSqlTest(IConfiguration configuration, IDbHelperFactory dbHelperFactory, DbProviderFactory dbProviderFactory) : base(configuration, dbHelperFactory, dbProviderFactory)
+    {
     }
 }
