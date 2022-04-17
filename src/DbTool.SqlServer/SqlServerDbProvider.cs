@@ -177,7 +177,7 @@ ORDER BY c.[column_id];
             InternalDbType.Decimal => isNullable ? "decimal?" : "decimal",
             InternalDbType.SmallMoney => isNullable ? "decimal?" : "decimal",
             InternalDbType.UniqueIdentifier => isNullable ? "Guid?" : "Guid",
-            InternalDbType.Date => isNullable ? "DateTime?" : "DateTime",
+            InternalDbType.Date => isNullable ? "DateOnly?" : "DateOnly",
             InternalDbType.SmallDateTime => isNullable ? "DateTime?" : "DateTime",
             InternalDbType.DateTime => isNullable ? "DateTime?" : "DateTime",
             InternalDbType.DateTime2 => isNullable ? "DateTime?" : "DateTime",
