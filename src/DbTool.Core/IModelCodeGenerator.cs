@@ -48,6 +48,11 @@ public sealed class ModelCodeGenerateOptions
     public bool GlobalUsingEnabled { get; set; }
 
     /// <summary>
+    /// 是否启用文件范围命名空间
+    /// </summary>
+    public bool FileScopedNamespaceEnabled { get; set; }
+
+    /// <summary>
     /// Global using
     /// </summary>
     public HashSet<string> GlobalUsing { get; set; } = DefaultGlobalUsing;

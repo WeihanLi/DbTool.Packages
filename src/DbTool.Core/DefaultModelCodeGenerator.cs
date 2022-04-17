@@ -3,6 +3,7 @@
 
 using DbTool.Core.Entity;
 using System.Text;
+using WeihanLi.Extensions;
 
 namespace DbTool.Core;
 
@@ -42,17 +43,33 @@ public class DefaultCSharpModelCodeGenerator : IModelCodeGenerator
             sbText.AppendLine("using System.ComponentModel.DataAnnotations.Schema;");
         }
         sbText.AppendLine();
-        sbText.AppendLine($"namespace {options.Namespace}");
-        sbText.AppendLine("{");
+        var namespaceText = $"namespace {options.Namespace}";
+        var classIndentation = string.Empty;
+        var memberIndentation = options.Indentation;
+        if (options.FileScopedNamespaceEnabled)
+        {
+            namespaceText += ";";
+        }
+        else
+        {
+            classIndentation = options.Indentation;
+            memberIndentation = options.Indentation.Repeat(2);
+        }
+        sbText.AppendLine(namespaceText);
+        if (!options.FileScopedNamespaceEnabled)
+            sbText.AppendLine("{");
+        else
+            sbText.AppendLine();
+
         if (options.GenerateDataAnnotation && !string.IsNullOrEmpty(tableEntity.TableDescription))
         {
             sbText.AppendLine(
-                $"{options.Indentation}/// <summary>{Environment.NewLine}{options.Indentation}/// {tableEntity.TableDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}/// </summary>");
-            sbText.AppendLine($"{options.Indentation}[Table(\"{tableEntity.TableName}\")]");
-            sbText.AppendLine($"{options.Indentation}[Description(\"{tableEntity.TableDescription.Replace(Environment.NewLine, " ")}\")]");
+                $"{classIndentation}/// <summary>{Environment.NewLine}{options.Indentation}/// {tableEntity.TableDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}/// </summary>");
+            sbText.AppendLine($"{classIndentation}[Table(\"{tableEntity.TableName}\")]");
+            sbText.AppendLine($"{classIndentation}[Description(\"{tableEntity.TableDescription.Replace(Environment.NewLine, " ")}\")]");
         }
-        sbText.AppendLine($"{options.Indentation}public class {options.Prefix}{_modelNameConverter.ConvertTableToModel(tableEntity.TableName)}{options.Suffix}");
-        sbText.AppendLine("{options.Indentation}{");
+        sbText.AppendLine($"{classIndentation}public class {options.Prefix}{_modelNameConverter.ConvertTableToModel(tableEntity.TableName)}{options.Suffix}");
+        sbText.AppendLine($"{classIndentation}{{");
         var index = 0;
         if (options.GeneratePrivateFields)
         {
@@ -72,40 +89,40 @@ public class DefaultCSharpModelCodeGenerator : IModelCodeGenerator
                     fclType += "?";
                 }
                 var tmpColName = ToPrivateFieldName(item.ColumnName);
-                sbText.AppendLine($"{options.Indentation}{options.Indentation}private {fclType} {tmpColName};");
+                sbText.AppendLine($"{memberIndentation}private {fclType} {tmpColName};");
                 if (options.GenerateDataAnnotation)
                 {
                     if (!string.IsNullOrEmpty(item.ColumnDescription))
                     {
                         sbText.AppendLine(
-                            $"{options.Indentation}{options.Indentation}/// <summary>{Environment.NewLine}{options.Indentation}{options.Indentation}/// {item.ColumnDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}{options.Indentation}/// </summary>");
+                            $"{memberIndentation}/// <summary>{Environment.NewLine}{options.Indentation}{options.Indentation}/// {item.ColumnDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}{options.Indentation}/// </summary>");
                         if (options.GenerateDataAnnotation)
                         {
-                            sbText.AppendLine($"{options.Indentation}{options.Indentation}[Description(\"{item.ColumnDescription.Replace(Environment.NewLine, " ")}\")]");
+                            sbText.AppendLine($"{memberIndentation}[Description(\"{item.ColumnDescription.Replace(Environment.NewLine, " ")}\")]");
                         }
                     }
                     else
                     {
                         if (item.IsPrimaryKey)
                         {
-                            sbText.AppendLine($"{options.Indentation}{options.Indentation}[Description(\"PrimaryKey\")]");
+                            sbText.AppendLine($"{memberIndentation}[Description(\"PrimaryKey\")]");
                         }
                     }
                     if (item.IsPrimaryKey)
                     {
-                        sbText.AppendLine($"{options.Indentation}{options.Indentation}[Key]");
+                        sbText.AppendLine($"{memberIndentation}[Key]");
                     }
-                    if (fclType == "string" && item.Size > 0 && item.Size < int.MaxValue)
+                    if (fclType == "string" && item.Size is > 0 and < int.MaxValue)
                     {
-                        sbText.AppendLine($"{options.Indentation}{options.Indentation}[StringLength({item.Size})]");
+                        sbText.AppendLine($"{memberIndentation}[StringLength({item.Size})]");
                     }
-                    sbText.AppendLine($"{options.Indentation}{options.Indentation}[Column(\"{item.ColumnName}\")]");
+                    sbText.AppendLine($"{memberIndentation}[Column(\"{item.ColumnName}\")]");
                 }
-                sbText.AppendLine($"{options.Indentation}{options.Indentation}public {fclType} {item.ColumnName}");
-                sbText.AppendLine("{options.Indentation}{options.Indentation}{");
-                sbText.AppendLine($"{options.Indentation}{options.Indentation}{options.Indentation}get {{ return {tmpColName}; }}");
-                sbText.AppendLine($"{options.Indentation}{options.Indentation}{options.Indentation}set {{ {tmpColName} = value; }}");
-                sbText.AppendLine("{options.Indentation}{options.Indentation}}");
+                sbText.AppendLine($"{memberIndentation}public {fclType} {item.ColumnName}");
+                sbText.AppendLine($"{memberIndentation}{{");
+                sbText.AppendLine($"{memberIndentation}{options.Indentation}get {{ return {tmpColName}; }}");
+                sbText.AppendLine($"{memberIndentation}{options.Indentation}set {{ {tmpColName} = value; }}");
+                sbText.AppendLine($"{memberIndentation}}}");
                 sbText.AppendLine();
             }
         }
@@ -131,28 +148,29 @@ public class DefaultCSharpModelCodeGenerator : IModelCodeGenerator
                     if (!string.IsNullOrEmpty(item.ColumnDescription))
                     {
                         sbText.AppendLine(
-                            $"{options.Indentation}{options.Indentation}/// <summary>{Environment.NewLine}{options.Indentation}{options.Indentation}/// {item.ColumnDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}{options.Indentation}/// </summary>");
+                            $"{memberIndentation}/// <summary>{Environment.NewLine}{options.Indentation}{options.Indentation}/// {item.ColumnDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}{options.Indentation}/// </summary>");
                         if (options.GenerateDataAnnotation)
                         {
-                            sbText.AppendLine($"{options.Indentation}{options.Indentation}[Description(\"{item.ColumnDescription.Replace(Environment.NewLine, " ")}\")]");
+                            sbText.AppendLine($"{memberIndentation}[Description(\"{item.ColumnDescription.Replace(Environment.NewLine, " ")}\")]");
                         }
                     }
                     if (item.IsPrimaryKey)
                     {
-                        sbText.AppendLine($"{options.Indentation}{options.Indentation}[Key]");
+                        sbText.AppendLine($"{memberIndentation}[Key]");
                     }
                     if (fclType == "string" && item.Size is > 0 and < int.MaxValue)
                     {
-                        sbText.AppendLine($"{options.Indentation}{options.Indentation}[StringLength({item.Size})]");
+                        sbText.AppendLine($"{memberIndentation}[StringLength({item.Size})]");
                     }
-                    sbText.AppendLine($"{options.Indentation}{options.Indentation}[Column(\"{item.ColumnName}\")]");
+                    sbText.AppendLine($"{memberIndentation}[Column(\"{item.ColumnName}\")]");
                 }
-                sbText.AppendLine($"{options.Indentation}{options.Indentation}public {fclType} {item.ColumnName} {{ get; set; }}");
+                sbText.AppendLine($"{memberIndentation}public {fclType} {item.ColumnName} {{ get; set; }}");
             }
         }
-        sbText.AppendLine("{options.Indentation}}");
-        sbText.AppendLine("}");
-        return sbText.ToString();
+        sbText.AppendLine($"{classIndentation}}}");
+        if (!options.FileScopedNamespaceEnabled)
+            sbText.AppendLine("}");
+        return sbText.ToString().Trim();
     }
 
     /// <summary>
