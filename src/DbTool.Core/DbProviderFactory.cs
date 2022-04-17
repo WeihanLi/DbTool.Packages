@@ -1,28 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Copyright (c) Weihan Li. All rights reserved.
+// Licensed under the MIT license.
 
-namespace DbTool.Core
+namespace DbTool.Core;
+
+public class DbProviderFactory
 {
-    public class DbProviderFactory
+    private readonly IDictionary<string, IDbProvider> _dbProviders;
+
+    public DbProviderFactory(IEnumerable<IDbProvider> dbProviders)
     {
-        private readonly IDictionary<string, IDbProvider> _dbProviders;
-
-        public DbProviderFactory(IEnumerable<IDbProvider> dbProviders)
-        {
-            _dbProviders = dbProviders.ToDictionary(p => p.DbType, p => p, StringComparer.OrdinalIgnoreCase);
-            SupportedDbTypes = _dbProviders.Keys.ToArray();
-        }
-
-        public IDbProvider GetDbProvider(string dbType)
-        {
-            if (dbType is null)
-            {
-                throw new ArgumentNullException(nameof(dbType));
-            }
-            return _dbProviders[dbType];
-        }
-
-        public IReadOnlyList<string> SupportedDbTypes { get; }
+        _dbProviders = dbProviders.ToDictionary(p => p.DbType, p => p, StringComparer.OrdinalIgnoreCase);
+        SupportedDbTypes = _dbProviders.Keys.ToArray();
     }
+
+    public IDbProvider GetDbProvider(string dbType)
+    {
+        if (dbType is null)
+        {
+            throw new ArgumentNullException(nameof(dbType));
+        }
+        return _dbProviders[dbType];
+    }
+
+    public IReadOnlyList<string> SupportedDbTypes { get; }
 }

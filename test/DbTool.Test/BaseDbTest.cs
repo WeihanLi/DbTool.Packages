@@ -1,35 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿// Copyright (c) Weihan Li. All rights reserved.
+// Licensed under the MIT license.
+
 using DbTool.Core;
 using DbTool.Core.Entity;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
-namespace DbTool.Test
+namespace DbTool.Test;
+
+public abstract class BaseDbTest
 {
-    public abstract class BaseDbTest
+    protected readonly IDbHelperFactory DbHelperFactory;
+    public abstract string DbType { get; }
+
+    protected readonly IDbProvider DbProvider;
+
+    public IConfiguration Configuration { get; }
+
+    protected BaseDbTest(IConfiguration configuration, IDbHelperFactory dbHelperFactory, DbProviderFactory dbProviderFactory)
     {
-        protected readonly IDbHelperFactory DbHelperFactory;
-        public abstract string DbType { get; }
+        DbHelperFactory = dbHelperFactory;
+        Configuration = configuration;
 
-        protected readonly IDbProvider DbProvider;
+        DbProvider = dbProviderFactory.GetDbProvider(DbType);
+    }
 
-        public IConfiguration Configuration { get; }
-
-        protected BaseDbTest(IConfiguration configuration, IDbHelperFactory dbHelperFactory, DbProviderFactory dbProviderFactory)
-        {
-            DbHelperFactory = dbHelperFactory;
-            Configuration = configuration;
-
-            DbProvider = dbProviderFactory.GetDbProvider(DbType);
-        }
-
-        protected readonly TableEntity TableEntity = new()
-        {
-            TableName = "tabUser111",
-            TableDescription = "测试用户表",
-            Columns = new List<ColumnEntity>
+    protected readonly TableEntity TableEntity = new()
+    {
+        TableName = "tabUser111",
+        TableDescription = "测试用户表",
+        Columns = new List<ColumnEntity>
             {
                 new ()
                 {
@@ -78,46 +78,45 @@ namespace DbTool.Test
                     Size = 8
                 }
             }
-        };
+    };
 
-        public virtual async Task QueryTest()
+    public virtual async Task QueryTest()
+    {
+        var dbHelper = DbHelperFactory.GetDbHelper(DbProvider, "");
+        Assert.NotNull(dbHelper.DatabaseName);
+        var tables = await dbHelper.GetTablesInfoAsync();
+        Assert.NotNull(tables);
+        Assert.NotEmpty(tables);
+        foreach (var table in tables)
         {
-            var dbHelper = DbHelperFactory.GetDbHelper(DbProvider, "");
-            Assert.NotNull(dbHelper.DatabaseName);
-            var tables = await dbHelper.GetTablesInfoAsync();
-            Assert.NotNull(tables);
-            Assert.NotEmpty(tables);
-            foreach (var table in tables)
-            {
-                Assert.NotNull(table.TableName);
-                var columns = await dbHelper.GetColumnsInfoAsync(table.TableName);
-                Assert.NotNull(columns);
-                Assert.NotEmpty(columns);
-            }
+            Assert.NotNull(table.TableName);
+            var columns = await dbHelper.GetColumnsInfoAsync(table.TableName);
+            Assert.NotNull(columns);
+            Assert.NotEmpty(columns);
         }
+    }
 
-        public virtual void CreateTest()
-        {
-            var sql = DbProvider.GenerateSqlStatement(TableEntity);
-            Assert.NotEmpty(sql);
+    public virtual void CreateTest()
+    {
+        var sql = DbProvider.GenerateSqlStatement(TableEntity);
+        Assert.NotEmpty(sql);
 
-            var sql1 = DbProvider.GenerateSqlStatement(TableEntity, false);
-            Assert.NotEmpty(sql1);
+        var sql1 = DbProvider.GenerateSqlStatement(TableEntity, false);
+        Assert.NotEmpty(sql1);
 
-            Assert.NotEqual(sql1, sql);
-        }
+        Assert.NotEqual(sql1, sql);
+    }
 
 
-        public virtual void DbType2ClrTypeTest(string dbType, bool isNullable, string expectedType)
-        {
-            var result = DbProvider.DbType2ClrType(dbType, isNullable);
-            Assert.Equal(expectedType, result);
-        }
+    public virtual void DbType2ClrTypeTest(string dbType, bool isNullable, string expectedType)
+    {
+        var result = DbProvider.DbType2ClrType(dbType, isNullable);
+        Assert.Equal(expectedType, result);
+    }
 
-        public virtual void ClrType2DbTypeTest(Type clrType, string expectedType)
-        {
-            var result = DbProvider.ClrType2DbType(clrType);
-            Assert.Equal(expectedType, result);
-        }
+    public virtual void ClrType2DbTypeTest(Type clrType, string expectedType)
+    {
+        var result = DbProvider.ClrType2DbType(clrType);
+        Assert.Equal(expectedType, result);
     }
 }

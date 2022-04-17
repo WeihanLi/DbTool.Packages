@@ -7,7 +7,7 @@
     </Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.1" />
     <ProjectReference Include="..\DbTool.Core\DbTool.Core.csproj" />
   </ItemGroup>
 </Project>

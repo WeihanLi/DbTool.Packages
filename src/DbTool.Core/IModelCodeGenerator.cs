@@ -1,50 +1,78 @@
-﻿using DbTool.Core.Entity;
+﻿// Copyright (c) Weihan Li. All rights reserved.
+// Licensed under the MIT license.
 
-namespace DbTool.Core
+using DbTool.Core.Entity;
+
+namespace DbTool.Core;
+
+public sealed class ModelCodeGenerateOptions
 {
-    public class ModelCodeGenerateOptions
+    /// <summary>
+    /// Model 命名空间
+    /// </summary>
+    public string? Namespace { get; set; }
+
+    /// <summary>
+    /// Model 前缀
+    /// </summary>
+    public string? Prefix { get; set; }
+
+    /// <summary>
+    /// Model 后缀
+    /// </summary>
+    public string? Suffix { get; set; }
+
+    /// <summary>
+    /// 是否生成 Description Attribute 描述
+    /// </summary>
+    public bool GenerateDataAnnotation { get; set; }
+
+    /// <summary>
+    /// 是否生成私有字段
+    /// </summary>
+    public bool GeneratePrivateFields { get; set; }
+
+    /// <summary>
+    /// 缩进格式，默认使用两个空格 "  "
+    /// </summary>
+    public string Indentation { get; set; } = "  ";
+
+    /// <summary>
+    /// 是否启用可空引用类型
+    /// </summary>
+    public bool NullableReferenceTypesEnabled { get; set; }
+
+    /// <summary>
+    /// 是否启用 GlobalUsing
+    /// </summary>
+    public bool GlobalUsingEnabled { get; set; }
+
+    /// <summary>
+    /// Global using
+    /// </summary>
+    public HashSet<string> GlobalUsing { get; set; } = DefaultGlobalUsing;
+
+    public static readonly HashSet<string> DefaultGlobalUsing = new()
     {
-        /// <summary>
-        /// Model 命名空间
-        /// </summary>
-        public string? Namespace { get; set; }
+        "System",
+        "System.Collections.Generic",
+        "System.IO",
+        "System.Linq",
+        "System.Net.Http",
+        "System.Threading",
+        "System.Threading.Tasks"
+    };
+}
 
-        /// <summary>
-        /// Model 前缀
-        /// </summary>
-        public string? Prefix { get; set; }
+public interface IModelCodeGenerator
+{
+    string FileExtension { get; }
 
-        /// <summary>
-        /// Model 后缀
-        /// </summary>
-        public string? Suffix { get; set; }
+    /// <summary>
+    /// CodeType
+    /// C#/TS ...
+    /// </summary>
+    string CodeType { get; }
 
-        /// <summary>
-        /// 是否生成 Description Attribute 描述
-        /// </summary>
-        public bool GenerateDataAnnotation { get; set; } = true;
-
-        /// <summary>
-        /// 是否生成私有字段
-        /// </summary>
-        public bool GeneratePrivateFields { get; set; }
-
-        /// <summary>
-        /// 是否使用 NameConverter 将 TableName 转换成 Model class 名称
-        /// </summary>
-        public bool ApplyNameConverter { get; set; }
-    }
-
-    public interface IModelCodeGenerator
-    {
-        string FileExtension { get; }
-
-        /// <summary>
-        /// CodeType
-        /// C#/TS ...
-        /// </summary>
-        string CodeType { get; }
-
-        string GenerateModelCode(TableEntity tableEntity, ModelCodeGenerateOptions options, IDbProvider dbProvider);
-    }
+    string GenerateModelCode(TableEntity tableEntity, ModelCodeGenerateOptions options, IDbProvider dbProvider);
 }

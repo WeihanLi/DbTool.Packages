@@ -2,8 +2,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <Import Project="../build/packageInfo.props" />
   <PropertyGroup>
-    <VersionMajor>1</VersionMajor>
-    <VersionMinor>6</VersionMinor>
+    <VersionMajor>2</VersionMajor>
+    <VersionMinor>0</VersionMinor>
     <VersionPatch>0</VersionPatch>
     <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionPatch)</VersionPrefix>
     <VersionSuffix Condition="'$(Configuration)'=='DEBUG'">preview</VersionSuffix>
