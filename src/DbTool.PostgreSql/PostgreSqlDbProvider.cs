@@ -50,6 +50,7 @@ FROM pg_class AS cls
 WHERE cls.relkind IN ('r', 'v', 'm')
   AND nspname NOT IN ('pg_catalog', 'information_schema')
   AND attnum > 0
+  AND attr.attname NOT LIKE '%pg.dropped%'
   AND cls.relname=@tableName
 ORDER BY attnum
 ";
