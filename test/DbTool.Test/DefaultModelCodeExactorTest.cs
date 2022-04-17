@@ -6,7 +6,7 @@ using Xunit;
 
 namespace DbTool.Test;
 
-public class DefaultModelCodeExactorTest
+public class DefaultModelCodeExtractorTest
 {
     [Fact]
     public async Task GenerateCodeFromText()
@@ -20,7 +20,7 @@ public record Post
     public DateTime UpdatedAt { get; set; }
 }
 ";
-        var codeExactor = new DefaultCSharpModelCodeExactor(new DefaultModelNameConverter());
+        var codeExactor = new DefaultCSharpModelCodeExtractor(new DefaultModelNameConverter());
         var tables = await codeExactor.GetTablesFromSourceText(new DbProvider.SqlServer.SqlServerDbProvider(), code);
         Assert.NotNull(tables);
         Assert.NotEmpty(tables);

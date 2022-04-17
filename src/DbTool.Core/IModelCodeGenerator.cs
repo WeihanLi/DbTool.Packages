@@ -5,7 +5,7 @@ using DbTool.Core.Entity;
 
 namespace DbTool.Core;
 
-public class ModelCodeGenerateOptions
+public sealed class ModelCodeGenerateOptions
 {
     /// <summary>
     /// Model 命名空间
@@ -25,7 +25,7 @@ public class ModelCodeGenerateOptions
     /// <summary>
     /// 是否生成 Description Attribute 描述
     /// </summary>
-    public bool GenerateDataAnnotation { get; set; } = true;
+    public bool GenerateDataAnnotation { get; set; }
 
     /// <summary>
     /// 是否生成私有字段
@@ -33,14 +33,35 @@ public class ModelCodeGenerateOptions
     public bool GeneratePrivateFields { get; set; }
 
     /// <summary>
-    /// 是否使用 NameConverter 将 TableName 转换成 Model class 名称
+    /// 缩进格式，默认使用两个空格 "  "
     /// </summary>
-    public bool ApplyNameConverter { get; set; }
+    public string Indentation { get; set; } = "  ";
 
     /// <summary>
     /// 是否启用可空引用类型
     /// </summary>
     public bool NullableReferenceTypesEnabled { get; set; }
+
+    /// <summary>
+    /// 是否启用 GlobalUsing
+    /// </summary>
+    public bool GlobalUsingEnabled { get; set; }
+
+    /// <summary>
+    /// Global using
+    /// </summary>
+    public HashSet<string> GlobalUsing { get; set; } = DefaultGlobalUsing;
+
+    public static readonly HashSet<string> DefaultGlobalUsing = new()
+    {
+        "System",
+        "System.Collections.Generic",
+        "System.IO",
+        "System.Linq",
+        "System.Net.Http",
+        "System.Threading",
+        "System.Threading.Tasks"
+    };
 }
 
 public interface IModelCodeGenerator

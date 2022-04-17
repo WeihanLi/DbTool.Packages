@@ -15,24 +15,17 @@ using WeihanLi.Extensions;
 
 namespace DbTool.Core;
 
-public class DefaultCSharpModelCodeExactor : IModelCodeExtractor
+public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
 {
     private readonly IModelNameConverter _modelNameConverter;
-    private readonly string _globalUsingsString;
+    private readonly string _globalUsingString;
 
-    public DefaultCSharpModelCodeExactor(IModelNameConverter modelNameConverter)
+    public DefaultCSharpModelCodeExtractor(IModelNameConverter modelNameConverter)
     {
         _modelNameConverter = modelNameConverter;
-        _globalUsingsString = new[]
-        {
-                "System",
-                "System.Collections.Generic",
-                "System.IO",
-                "System.Linq",
-                "System.Net.Http",
-                "System.Threading",
-                "System.Threading.Tasks"
-            }.Select(ns => $"global using {ns};").StringJoin(Environment.NewLine);
+        _globalUsingString = ModelCodeGenerateOptions.DefaultGlobalUsing
+            .Select(ns => $"global using {ns};")
+            .StringJoin(Environment.NewLine);
     }
 
     public Dictionary<string, string> SupportedFileExtensions { get; } = new()
@@ -42,11 +35,11 @@ public class DefaultCSharpModelCodeExactor : IModelCodeExtractor
 
     public virtual string CodeType => "C#";
 
-    public virtual Task<List<TableEntity>> GetTablesFromSourceFiles(IDbProvider dbProvider, params string[] sourceFilePaths)
+    public virtual async Task<List<TableEntity>> GetTablesFromSourceFiles(IDbProvider dbProvider, params string[] sourceFilePaths)
     {
-        if (sourceFilePaths == null || sourceFilePaths.Length <= 0)
+        if (sourceFilePaths.IsNullOrEmpty())
         {
-            return Task.FromResult(new List<TableEntity>());
+            return new List<TableEntity>();
         }
         var usingList = new List<string>();
 
@@ -54,7 +47,7 @@ public class DefaultCSharpModelCodeExactor : IModelCodeExtractor
 
         foreach (var path in sourceFilePaths.Distinct())
         {
-            foreach (var line in File.ReadAllLines(path))
+            foreach (var line in await File.ReadAllLinesAsync(path))
             {
                 if (line.StartsWith("using ") && line.EndsWith(";"))
                 {
@@ -66,15 +59,14 @@ public class DefaultCSharpModelCodeExactor : IModelCodeExtractor
                 }
             }
         }
-
         var sourceCodeText =
             $"{usingList.StringJoin(Environment.NewLine)}{Environment.NewLine}{sourceCodeTextBuilder}";
-        return GetTablesFromSourceText(dbProvider, sourceCodeText);
+        return await GetTablesFromSourceText(dbProvider, sourceCodeText);
     }
 
     public virtual Task<List<TableEntity>> GetTablesFromSourceText(IDbProvider dbProvider, string sourceText)
     {
-        var text = @$"{_globalUsingsString}{Environment.NewLine}{sourceText}";
+        var text = @$"{_globalUsingString}{Environment.NewLine}{sourceText}";
         var nullableReferenceTypesEnabled = sourceText.Contains("string?")
             || sourceText.Contains("object?")
             || sourceText.Contains("null!")
@@ -139,10 +131,6 @@ public class DefaultCSharpModelCodeExactor : IModelCodeExtractor
                 if (property.IsDefined(typeof(NotMappedAttribute)))
                 {
                     continue; // not mapped or is navigationProperty
-                }
-                if (property.GetGetMethod()?.IsVirtual == true)
-                {
-                    continue; // virtual navigationProperty
                 }
                 if (!property.PropertyType.IsBasicType() && !property.PropertyType.IsEnum)
                 {

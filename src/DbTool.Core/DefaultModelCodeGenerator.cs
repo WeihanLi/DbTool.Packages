@@ -29,10 +29,12 @@ public class DefaultCSharpModelCodeGenerator : IModelCodeGenerator
         {
             throw new ArgumentNullException(nameof(dbProvider));
         }
-        options ??= new();
 
         var sbText = new StringBuilder();
-        sbText.AppendLine("using System;");
+        if (!(options.GlobalUsingEnabled && options.GlobalUsing.Contains("System")))
+        {
+            sbText.AppendLine("using System;");
+        }
         if (options.GenerateDataAnnotation)
         {
             sbText.AppendLine("using System.ComponentModel;");
@@ -45,12 +47,12 @@ public class DefaultCSharpModelCodeGenerator : IModelCodeGenerator
         if (options.GenerateDataAnnotation && !string.IsNullOrEmpty(tableEntity.TableDescription))
         {
             sbText.AppendLine(
-                $"\t/// <summary>{Environment.NewLine}\t/// {tableEntity.TableDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}\t/// </summary>");
-            sbText.AppendLine($"\t[Table(\"{tableEntity.TableName}\")]");
-            sbText.AppendLine($"\t[Description(\"{tableEntity.TableDescription.Replace(Environment.NewLine, " ")}\")]");
+                $"{options.Indentation}/// <summary>{Environment.NewLine}{options.Indentation}/// {tableEntity.TableDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}/// </summary>");
+            sbText.AppendLine($"{options.Indentation}[Table(\"{tableEntity.TableName}\")]");
+            sbText.AppendLine($"{options.Indentation}[Description(\"{tableEntity.TableDescription.Replace(Environment.NewLine, " ")}\")]");
         }
-        sbText.AppendLine($"\tpublic class {options.Prefix}{_modelNameConverter.ConvertTableToModel(tableEntity.TableName)}{options.Suffix}");
-        sbText.AppendLine("\t{");
+        sbText.AppendLine($"{options.Indentation}public class {options.Prefix}{_modelNameConverter.ConvertTableToModel(tableEntity.TableName)}{options.Suffix}");
+        sbText.AppendLine("{options.Indentation}{");
         var index = 0;
         if (options.GeneratePrivateFields)
         {
@@ -65,42 +67,45 @@ public class DefaultCSharpModelCodeGenerator : IModelCodeGenerator
                     index++;
                 }
                 var fclType = dbProvider.DbType2ClrType(item.DataType, item.IsNullable);
-
+                if (item.IsNullable && fclType[^1] != '?' && options.NullableReferenceTypesEnabled)
+                {
+                    fclType += "?";
+                }
                 var tmpColName = ToPrivateFieldName(item.ColumnName);
-                sbText.AppendLine($"\t\tprivate {fclType} {tmpColName};");
+                sbText.AppendLine($"{options.Indentation}{options.Indentation}private {fclType} {tmpColName};");
                 if (options.GenerateDataAnnotation)
                 {
                     if (!string.IsNullOrEmpty(item.ColumnDescription))
                     {
                         sbText.AppendLine(
-                            $"\t\t/// <summary>{Environment.NewLine}\t\t/// {item.ColumnDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}\t\t/// </summary>");
+                            $"{options.Indentation}{options.Indentation}/// <summary>{Environment.NewLine}{options.Indentation}{options.Indentation}/// {item.ColumnDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}{options.Indentation}/// </summary>");
                         if (options.GenerateDataAnnotation)
                         {
-                            sbText.AppendLine($"\t\t[Description(\"{item.ColumnDescription.Replace(Environment.NewLine, " ")}\")]");
+                            sbText.AppendLine($"{options.Indentation}{options.Indentation}[Description(\"{item.ColumnDescription.Replace(Environment.NewLine, " ")}\")]");
                         }
                     }
                     else
                     {
                         if (item.IsPrimaryKey)
                         {
-                            sbText.AppendLine($"\t\t[Description(\"主键\")]");
+                            sbText.AppendLine($"{options.Indentation}{options.Indentation}[Description(\"PrimaryKey\")]");
                         }
                     }
                     if (item.IsPrimaryKey)
                     {
-                        sbText.AppendLine($"\t\t[Key]");
+                        sbText.AppendLine($"{options.Indentation}{options.Indentation}[Key]");
                     }
                     if (fclType == "string" && item.Size > 0 && item.Size < int.MaxValue)
                     {
-                        sbText.AppendLine($"\t\t[StringLength({item.Size})]");
+                        sbText.AppendLine($"{options.Indentation}{options.Indentation}[StringLength({item.Size})]");
                     }
-                    sbText.AppendLine($"\t\t[Column(\"{item.ColumnName}\")]");
+                    sbText.AppendLine($"{options.Indentation}{options.Indentation}[Column(\"{item.ColumnName}\")]");
                 }
-                sbText.AppendLine($"\t\tpublic {fclType} {item.ColumnName}");
-                sbText.AppendLine("\t\t{");
-                sbText.AppendLine($"\t\t\tget {{ return {tmpColName}; }}");
-                sbText.AppendLine($"\t\t\tset {{ {tmpColName} = value; }}");
-                sbText.AppendLine("\t\t}");
+                sbText.AppendLine($"{options.Indentation}{options.Indentation}public {fclType} {item.ColumnName}");
+                sbText.AppendLine("{options.Indentation}{options.Indentation}{");
+                sbText.AppendLine($"{options.Indentation}{options.Indentation}{options.Indentation}get {{ return {tmpColName}; }}");
+                sbText.AppendLine($"{options.Indentation}{options.Indentation}{options.Indentation}set {{ {tmpColName} = value; }}");
+                sbText.AppendLine("{options.Indentation}{options.Indentation}}");
                 sbText.AppendLine();
             }
         }
@@ -117,32 +122,35 @@ public class DefaultCSharpModelCodeGenerator : IModelCodeGenerator
                     index++;
                 }
                 var fclType = dbProvider.DbType2ClrType(item.DataType, item.IsNullable);
-
+                if (item.IsNullable && fclType[^1] != '?' && options.NullableReferenceTypesEnabled)
+                {
+                    fclType += "?";
+                }
                 if (options.GenerateDataAnnotation)
                 {
                     if (!string.IsNullOrEmpty(item.ColumnDescription))
                     {
                         sbText.AppendLine(
-                            $"\t\t/// <summary>{Environment.NewLine}\t\t/// {item.ColumnDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}\t\t/// </summary>");
+                            $"{options.Indentation}{options.Indentation}/// <summary>{Environment.NewLine}{options.Indentation}{options.Indentation}/// {item.ColumnDescription.Replace(Environment.NewLine, " ")}{Environment.NewLine}{options.Indentation}{options.Indentation}/// </summary>");
                         if (options.GenerateDataAnnotation)
                         {
-                            sbText.AppendLine($"\t\t[Description(\"{item.ColumnDescription.Replace(Environment.NewLine, " ")}\")]");
+                            sbText.AppendLine($"{options.Indentation}{options.Indentation}[Description(\"{item.ColumnDescription.Replace(Environment.NewLine, " ")}\")]");
                         }
                     }
                     if (item.IsPrimaryKey)
                     {
-                        sbText.AppendLine($"\t\t[Key]");
+                        sbText.AppendLine($"{options.Indentation}{options.Indentation}[Key]");
                     }
-                    if (fclType == "string" && item.Size > 0 && item.Size < int.MaxValue)
+                    if (fclType == "string" && item.Size is > 0 and < int.MaxValue)
                     {
-                        sbText.AppendLine($"\t\t[StringLength({item.Size})]");
+                        sbText.AppendLine($"{options.Indentation}{options.Indentation}[StringLength({item.Size})]");
                     }
-                    sbText.AppendLine($"\t\t[Column(\"{item.ColumnName}\")]");
+                    sbText.AppendLine($"{options.Indentation}{options.Indentation}[Column(\"{item.ColumnName}\")]");
                 }
-                sbText.AppendLine($"\t\tpublic {fclType} {item.ColumnName} {{ get; set; }}");
+                sbText.AppendLine($"{options.Indentation}{options.Indentation}public {fclType} {item.ColumnName} {{ get; set; }}");
             }
         }
-        sbText.AppendLine("\t}");
+        sbText.AppendLine("{options.Indentation}}");
         sbText.AppendLine("}");
         return sbText.ToString();
     }
@@ -168,7 +176,6 @@ public class DefaultCSharpModelCodeGenerator : IModelCodeGenerator
         {
             return $"{char.ToLower(propertyName[0])}{propertyName[1..]}";
         }
-
         return $"_{propertyName}";
     }
 }
