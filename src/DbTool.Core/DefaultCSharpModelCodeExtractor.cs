@@ -104,7 +104,10 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
 
     protected virtual List<TableEntity> GetTablesFromAssembly(Assembly assembly, IDbProvider dbProvider, bool nullableReferenceTypesEnabled)
     {
-        var validTypes = assembly.GetExportedTypes().Where(x => x.IsClass && !x.IsAbstract).ToArray();
+        var validTypes = assembly.GetExportedTypes()
+            .Where(x => x.IsClass && !x.IsAbstract)
+            .Where(x => !x.ContainsGenericParameters)
+            .ToArray();
         var tables = new List<TableEntity>(validTypes.Length);
         var nullabilityInfoContext = new NullabilityInfoContext();
         foreach (var type in validTypes)
@@ -140,15 +143,12 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                             : property.PropertyType)
                 };
 
-                bool? nullable = nullabilityInfo.ReadState switch
-                {
-                    NullabilityState.NotNull => false,
-                    NullabilityState.Nullable => true,
-                    _ => null
-                };
-
                 var defaultPropertyValue = property.PropertyType.GetDefaultValue();
-                if (nullable != false)
+                if (nullableReferenceTypesEnabled)
+                {
+                    columnInfo.IsNullable = nullabilityInfo.ReadState == NullabilityState.NotNull;
+                }
+                else
                 {
                     if (defaultPropertyValue is null)
                     {
@@ -160,10 +160,6 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                         // ValueType
                         columnInfo.IsNullable = false;
                     }
-                }
-                else
-                {
-                    columnInfo.IsNullable = false;
                 }
 
                 var val = property.GetValue(defaultVal);

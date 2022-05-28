@@ -8,10 +8,8 @@ namespace DbTool.Test;
 
 public class DefaultModelCodeExtractorTest
 {
-    [Fact]
-    public async Task GenerateCodeFromText()
-    {
-        var code = @"
+    [Theory]
+    [InlineData(@"
 public record Post
 {
     public int Id { get; set; }
@@ -19,7 +17,18 @@ public record Post
     public string? Description { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
-";
+")]
+    [InlineData(@"
+public class Post
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string Description { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+")]
+    public async Task GenerateCodeFromText(string code)
+    {
         var codeExactor = new DefaultCSharpModelCodeExtractor(new DefaultModelNameConverter());
         var tables = await codeExactor.GetTablesFromSourceText(new DbProvider.SqlServer.SqlServerDbProvider(), code);
         Assert.NotNull(tables);
