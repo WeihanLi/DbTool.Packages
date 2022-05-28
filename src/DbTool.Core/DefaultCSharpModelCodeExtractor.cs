@@ -140,15 +140,19 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                             : property.PropertyType)
                 };
 
-                bool? nullable = nullabilityInfo.ReadState switch
+                var nullable = nullabilityInfo.ReadState switch
                 {
                     NullabilityState.NotNull => false,
                     NullabilityState.Nullable => true,
-                    _ => null
+                    _ => true
                 };
 
                 var defaultPropertyValue = property.PropertyType.GetDefaultValue();
-                if (nullable != false)
+                if (nullableReferenceTypesEnabled)
+                {
+                    columnInfo.IsNullable = nullable;
+                }
+                else
                 {
                     if (defaultPropertyValue is null)
                     {
@@ -160,10 +164,6 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                         // ValueType
                         columnInfo.IsNullable = false;
                     }
-                }
-                else
-                {
-                    columnInfo.IsNullable = false;
                 }
 
                 var val = property.GetValue(defaultVal);
