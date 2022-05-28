@@ -41,37 +41,24 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
         {
             return new List<TableEntity>();
         }
-        var usingList = new List<string>();
 
-        var sourceCodeTextBuilder = new StringBuilder();
-
-        foreach (var path in sourceFilePaths.Distinct())
+        var sourceTextList = new string[sourceFilePaths.Length + 1];
+        for (var i = 0; i < sourceFilePaths.Length; i++)
         {
-            foreach (var line in await File.ReadAllLinesAsync(path))
-            {
-                if (line.StartsWith("using ") && line.EndsWith(";"))
-                {
-                    usingList.AddIfNotContains(line);
-                }
-                else
-                {
-                    sourceCodeTextBuilder.AppendLine(line);
-                }
-            }
+            sourceTextList[i] = await File.ReadAllTextAsync(sourceFilePaths[i]);
         }
-        var sourceCodeText =
-            $"{usingList.StringJoin(Environment.NewLine)}{Environment.NewLine}{sourceCodeTextBuilder}";
-        return await GetTablesFromSourceText(dbProvider, sourceCodeText);
+        sourceTextList[^1] = _globalUsingString;
+        return await GetTablesFromSourceText(dbProvider, sourceTextList);
     }
 
-    public virtual Task<List<TableEntity>> GetTablesFromSourceText(IDbProvider dbProvider, string sourceText)
+    public virtual Task<List<TableEntity>> GetTablesFromSourceText(IDbProvider dbProvider, params string[] sourceText)
     {
-        var text = @$"{_globalUsingString}{Environment.NewLine}{sourceText}";
+        var parseOptions = new CSharpParseOptions(LanguageVersion.Preview);
+        var syntaxTrees = sourceText.Select(text => CSharpSyntaxTree.ParseText(text)).ToArray();
         var nullableReferenceTypesEnabled = sourceText.Contains("string?")
             || sourceText.Contains("object?")
             || sourceText.Contains("null!")
             || sourceText.Contains("default!");
-        var syntaxTree = CSharpSyntaxTree.ParseText(text, new CSharpParseOptions(LanguageVersion.Latest));
         var references = new[]
                 {
                         typeof(object).Assembly,
@@ -87,13 +74,10 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                 .Cast<MetadataReference>()
                 .ToArray();
         var assemblyName = $"DbTool.DynamicGenerated.{GuidIdGenerator.Instance.NewId()}";
-        var compilation = CSharpCompilation.Create(assemblyName)
-            .WithOptions(
-              new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-              .WithNullableContextOptions(nullableReferenceTypesEnabled ? NullableContextOptions.Enable : NullableContextOptions.Disable)
-            )
-            .AddReferences(references)
-            .AddSyntaxTrees(syntaxTree);
+        var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+              .WithNullableContextOptions(nullableReferenceTypesEnabled ? NullableContextOptions.Enable : NullableContextOptions.Annotations);
+        var compilation = CSharpCompilation.Create(assemblyName, syntaxTrees, references, compilationOptions);
+
         using var ms = new MemoryStream();
         var compilationResult = compilation.Emit(ms);
         if (compilationResult.Success)
@@ -107,7 +91,8 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
             // .Where(x => x.Severity == DiagnosticSeverity.Error)
             )
         {
-            error.AppendLine($"{t.GetMessage()}");
+            var msg = CSharpDiagnosticFormatter.Instance.Format(t);
+            error.AppendLine($"{msg}");
         }
         throw new ArgumentException($"Compile error:{Environment.NewLine}{error}");
     }

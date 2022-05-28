@@ -10,7 +10,7 @@ public interface IModelCodeExtractor
     Dictionary<string, string> SupportedFileExtensions { get; }
     public string CodeType { get; }
 
-    Task<List<TableEntity>> GetTablesFromSourceText(IDbProvider dbProvider, string sourceText);
+    Task<List<TableEntity>> GetTablesFromSourceText(IDbProvider dbProvider, params string[] sourceText);
 
     Task<List<TableEntity>> GetTablesFromSourceFiles(IDbProvider dbProvider, params string[] sourceFilePaths);
 }
