@@ -41,37 +41,29 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
         {
             return new List<TableEntity>();
         }
-        var usingList = new List<string>();
 
-        var sourceCodeTextBuilder = new StringBuilder();
-
-        foreach (var path in sourceFilePaths.Distinct())
+        var sourceTextList = new string[sourceFilePaths.Length];
+        for (var i = 0; i < sourceFilePaths.Length; i++)
         {
-            foreach (var line in await File.ReadAllLinesAsync(path))
-            {
-                if (line.StartsWith("using ") && line.EndsWith(";"))
-                {
-                    usingList.AddIfNotContains(line);
-                }
-                else
-                {
-                    sourceCodeTextBuilder.AppendLine(line);
-                }
-            }
+            sourceTextList[i] = await File.ReadAllTextAsync(sourceFilePaths[i]);
         }
-        var sourceCodeText =
-            $"{usingList.StringJoin(Environment.NewLine)}{Environment.NewLine}{sourceCodeTextBuilder}";
-        return await GetTablesFromSourceText(dbProvider, sourceCodeText);
+        return await GetTablesFromSourceText(dbProvider, sourceTextList);
     }
 
-    public virtual Task<List<TableEntity>> GetTablesFromSourceText(IDbProvider dbProvider, string sourceText)
+    public virtual async Task<List<TableEntity>> GetTablesFromSourceText(IDbProvider dbProvider, params string[] sourceText)
     {
-        var text = @$"{_globalUsingString}{Environment.NewLine}{sourceText}";
+        if (sourceText.IsNullOrEmpty())
+        {
+            return new List<TableEntity>();
+        }
+        var parseOptions = new CSharpParseOptions(LanguageVersion.Preview);
+        var syntaxTrees = sourceText.Append(_globalUsingString)
+            .Select(text => CSharpSyntaxTree.ParseText(text))
+            .ToArray();
         var nullableReferenceTypesEnabled = sourceText.Contains("string?")
             || sourceText.Contains("object?")
             || sourceText.Contains("null!")
             || sourceText.Contains("default!");
-        var syntaxTree = CSharpSyntaxTree.ParseText(text, new CSharpParseOptions(LanguageVersion.Latest));
         var references = new[]
                 {
                         typeof(object).Assembly,
@@ -87,19 +79,16 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                 .Cast<MetadataReference>()
                 .ToArray();
         var assemblyName = $"DbTool.DynamicGenerated.{GuidIdGenerator.Instance.NewId()}";
-        var compilation = CSharpCompilation.Create(assemblyName)
-            .WithOptions(
-              new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-              .WithNullableContextOptions(nullableReferenceTypesEnabled ? NullableContextOptions.Enable : NullableContextOptions.Disable)
-            )
-            .AddReferences(references)
-            .AddSyntaxTrees(syntaxTree);
-        using var ms = new MemoryStream();
+        var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+              .WithNullableContextOptions(nullableReferenceTypesEnabled ? NullableContextOptions.Enable : NullableContextOptions.Annotations);
+        var compilation = CSharpCompilation.Create(assemblyName, syntaxTrees, references, compilationOptions);
+
+        await using var ms = new MemoryStream();
         var compilationResult = compilation.Emit(ms);
         if (compilationResult.Success)
         {
             var assemblyBytes = ms.ToArray();
-            return Task.FromResult(GetTablesFromAssembly(Assembly.Load(assemblyBytes), dbProvider));
+            return GetTablesFromAssembly(Assembly.Load(assemblyBytes), dbProvider, nullableReferenceTypesEnabled);
         }
 
         var error = new StringBuilder();
@@ -107,15 +96,17 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
             // .Where(x => x.Severity == DiagnosticSeverity.Error)
             )
         {
-            error.AppendLine($"{t.GetMessage()}");
+            var msg = CSharpDiagnosticFormatter.Instance.Format(t);
+            error.AppendLine($"{msg}");
         }
         throw new ArgumentException($"Compile error:{Environment.NewLine}{error}");
     }
 
-    protected virtual List<TableEntity> GetTablesFromAssembly(Assembly assembly, IDbProvider dbProvider)
+    protected virtual List<TableEntity> GetTablesFromAssembly(Assembly assembly, IDbProvider dbProvider, bool nullableReferenceTypesEnabled)
     {
         var validTypes = assembly.GetExportedTypes().Where(x => x.IsClass && !x.IsAbstract).ToArray();
         var tables = new List<TableEntity>(validTypes.Length);
+        var nullabilityInfoContext = new NullabilityInfoContext();
         foreach (var type in validTypes)
         {
             var tableAttr = type.GetCustomAttribute<TableAttribute>();
@@ -125,6 +116,7 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                 TableSchema = tableAttr?.Schema,
                 TableDescription = type.GetCustomAttribute<DescriptionAttribute>()?.Description
             };
+
             var defaultVal = Activator.CreateInstance(type);
             foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
@@ -136,6 +128,7 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                 {
                     continue; // none basic type
                 }
+                var nullabilityInfo = nullabilityInfoContext.Create(property);
 
                 var columnInfo = new ColumnEntity
                 {
@@ -146,15 +139,30 @@ public class DefaultCSharpModelCodeExtractor : IModelCodeExtractor
                             ? Enum.GetUnderlyingType(property.PropertyType)
                             : property.PropertyType)
                 };
-                var defaultPropertyValue = property.PropertyType.GetDefaultValue();
-                if (defaultPropertyValue is null)
+
+                bool? nullable = nullabilityInfo.ReadState switch
                 {
-                    // ReferenceType
-                    columnInfo.IsNullable = !property.IsDefined(typeof(RequiredAttribute));
+                    NullabilityState.NotNull => false,
+                    NullabilityState.Nullable => true,
+                    _ => null
+                };
+
+                var defaultPropertyValue = property.PropertyType.GetDefaultValue();
+                if (nullable != false)
+                {
+                    if (defaultPropertyValue is null)
+                    {
+                        // ReferenceType
+                        columnInfo.IsNullable = !property.IsDefined(typeof(RequiredAttribute));
+                    }
+                    else
+                    {
+                        // ValueType
+                        columnInfo.IsNullable = false;
+                    }
                 }
                 else
                 {
-                    // ValueType
                     columnInfo.IsNullable = false;
                 }
 
