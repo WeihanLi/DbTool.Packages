@@ -9,8 +9,8 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Text;
-using WeihanLi.Common;
 using WeihanLi.Common.Models;
+using WeihanLi.Common.Services;
 using WeihanLi.Extensions;
 
 namespace DbTool.Core;
