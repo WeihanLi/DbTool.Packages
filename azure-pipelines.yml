@@ -25,5 +25,5 @@ steps:
 - script: dotnet build.cs
   displayName: 'Build Script'
   env:
-    Nuget__ApiKey: $(nugetApiKey)
-    Nuget__SourceUrl: $(nugetSourceUrl)
+    NuGet__ApiKey: $(nugetApiKey)
+    NuGet__Source: $(nugetSourceUrl)
