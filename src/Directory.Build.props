@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <Import Project="../build/packageInfo.props" />
   <PropertyGroup>
-    <VersionMajor>3</VersionMajor>
+    <VersionMajor>4</VersionMajor>
     <VersionMinor>0</VersionMinor>
     <VersionPatch>0</VersionPatch>
     <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionPatch)</VersionPrefix>

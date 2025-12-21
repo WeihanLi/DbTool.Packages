@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DbTool.Core/DbTool.Core.csproj" />
+    <Project Path="src/DbTool.MySql/DbTool.MySql.csproj" />
+    <Project Path="src/DbTool.PostgreSql/DbTool.PostgreSql.csproj" />
+    <Project Path="src/DbTool.SqlServer/DbTool.SqlServer.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/DbTool.Test/DbTool.Test.csproj" />
+  </Folder>
+</Solution>

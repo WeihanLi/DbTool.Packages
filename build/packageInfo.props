@@ -1,5 +1,4 @@
 <Project>
-  <!-- <Import Project="sign.props" /> -->
   <PropertyGroup>
     <PackageIcon>icon.jpg</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

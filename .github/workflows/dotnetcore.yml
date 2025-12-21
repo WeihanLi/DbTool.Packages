@@ -3,15 +3,14 @@ name: dotnetcore
 on: [push]
 
 jobs:
-  # Label of the container job
   default:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '10.0.x'
     - name: dotnet info
       run: dotnet --info
     - name: build
