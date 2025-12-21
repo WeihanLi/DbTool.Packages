@@ -22,8 +22,8 @@ steps:
   displayName: "dotnet restore"
 - script: dotnet build -c Release
   displayName: "dotnet build"
-- powershell: ./build.ps1
-  displayName: 'Powershell Script'
+- script: dotnet build.cs
+  displayName: 'Build Script'
   env:
     Nuget__ApiKey: $(nugetApiKey)
     Nuget__SourceUrl: $(nugetSourceUrl)
