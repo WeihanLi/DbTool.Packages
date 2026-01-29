@@ -1,4 +1,4 @@
-// Copyright (c) Weihan Li. All rights reserved.
+﻿// Copyright (c) Weihan Li. All rights reserved.
 // Licensed under the MIT license.
 
 using DbTool.Core;
@@ -60,7 +60,7 @@ ORDER BY t1.COLUMN_ID";
     {
         // Handle Oracle data types - convert to uppercase for comparison
         var upperDbType = dbType.ToUpperInvariant();
-        
+
         // Try to parse as enum, but handle cases where it might not be an exact match
         InternalDbType oracleDbType;
         if (upperDbType.Contains("NUMBER") || upperDbType == "INTEGER" || upperDbType == "INT" || upperDbType == "SMALLINT")
@@ -182,7 +182,7 @@ ORDER BY t1.COLUMN_ID";
     public virtual uint GetDefaultSizeForDbType(string dbType, uint defaultLength = 64)
     {
         var upperDbType = dbType.ToUpperInvariant();
-        
+
         // Handle Oracle data types
         if (upperDbType.Contains("NUMBER") || upperDbType == "INTEGER" || upperDbType == "INT")
         {
@@ -220,7 +220,7 @@ ORDER BY t1.COLUMN_ID";
         {
             return 10;
         }
-        
+
         return defaultLength;
     }
 
@@ -232,7 +232,7 @@ ORDER BY t1.COLUMN_ID";
         {
             return string.Empty;
         }
-        
+
         var sbSqlText = new StringBuilder();
         sbSqlText.AppendLine($"-- ---------- Create Table 【{tableEntity.TableName}】 Sql -----------");
         sbSqlText.Append($"CREATE TABLE {tableEntity.TableName}(");
@@ -243,7 +243,7 @@ ORDER BY t1.COLUMN_ID";
             {
                 sbSqlText.AppendLine();
                 sbSqlText.Append($"    {col.ColumnName} {col.DataType}");
-                
+
                 // Add size for character and binary types
                 if (col.DataType.ToUpperInvariant().Contains("CHAR") || col.DataType.ToUpperInvariant().Contains("RAW"))
                 {
@@ -258,19 +258,19 @@ ORDER BY t1.COLUMN_ID";
                     // Default NUMBER precision/scale
                     sbSqlText.Append("(18,2)");
                 }
-                
+
                 // Primary key constraint
                 if (col.IsPrimaryKey)
                 {
                     sbSqlText.Append(" PRIMARY KEY");
                 }
-                
+
                 // Nullable
                 if (!col.IsNullable)
                 {
                     sbSqlText.Append(" NOT NULL");
                 }
-                
+
                 // Default Value
                 var defaultValueStr = col.DefaultValue?.ToString()?.Trim();
                 if (!string.IsNullOrEmpty(defaultValueStr))
@@ -296,14 +296,14 @@ ORDER BY t1.COLUMN_ID";
         }
 
         sbSqlText.AppendLine(");");
-        
+
         // Add table comments
         if (generateDescription && !string.IsNullOrWhiteSpace(tableEntity.TableDescription))
         {
             sbSqlText.AppendLine();
             sbSqlText.AppendLine($"COMMENT ON TABLE {tableEntity.TableName} IS '{tableEntity.TableDescription.Replace("'", "''")}';");
         }
-        
+
         // Add column comments
         if (generateDescription)
         {
@@ -312,7 +312,7 @@ ORDER BY t1.COLUMN_ID";
                 sbSqlText.AppendLine($"COMMENT ON COLUMN {tableEntity.TableName}.{col.ColumnName} IS '{col.ColumnDescription!.Replace("'", "''")}';");
             }
         }
-        
+
         sbSqlText.AppendLine();
         return sbSqlText.ToString();
     }

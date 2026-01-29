@@ -1,4 +1,4 @@
-// Copyright (c) Weihan Li. All rights reserved.
+﻿// Copyright (c) Weihan Li. All rights reserved.
 // Licensed under the MIT license.
 
 namespace DbTool.DbProvider.Oracle;
@@ -13,12 +13,12 @@ internal enum OracleDbType
     Float,
     BinaryFloat,
     BinaryDouble,
-    
+
     // Integer types (aliases for NUMBER)
     Integer,
     Int,
     SmallInt,
-    
+
     // String types
     Char,
     NChar,
@@ -28,7 +28,7 @@ internal enum OracleDbType
     Clob,
     NClob,
     Long,
-    
+
     // Date/Time types
     Date,
     Timestamp,
@@ -36,13 +36,13 @@ internal enum OracleDbType
     TimestampWithLocalTimeZone,
     IntervalYearToMonth,
     IntervalDayToSecond,
-    
+
     // Binary types
     Raw,
     LongRaw,
     Blob,
     BFile,
-    
+
     // Other types
     RowId,
     URowId,
