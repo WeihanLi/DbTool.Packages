@@ -25,36 +25,36 @@ WHERE t.table_type = 'TABLE'
 ORDER BY t.table_name";
 
     public virtual string QueryTableColumnsSqlFormat => @"
-SELECT t1.Table_Name AS TableName,
-       t1.Column_Name AS ColumnName,
-       t2.Comments AS ColumnDescription,
-       CASE WHEN t1.NullAble = 'Y' THEN 1 ELSE 0 END AS IsNullable,
+SELECT t1.TABLE_NAME AS TableName,
+       t1.COLUMN_NAME AS ColumnName,
+       t2.COMMENTS AS ColumnDescription,
+       CASE WHEN t1.NULLABLE = 'Y' THEN 1 ELSE 0 END AS IsNullable,
        t1.DATA_TYPE AS DataType,
        t1.DATA_LENGTH AS Size,
-       CASE WHEN pk.column_name IS NOT NULL THEN 1 ELSE 0 END AS IsPrimaryKey,
-       t1.Data_Default AS DefaultValue
+       CASE WHEN pk.COLUMN_NAME IS NOT NULL THEN 1 ELSE 0 END AS IsPrimaryKey,
+       t1.DATA_DEFAULT AS DefaultValue
 FROM cols t1
 LEFT JOIN user_col_comments t2 
-       ON t1.Table_name = t2.Table_name
-      AND t1.Column_Name = t2.Column_Name
+       ON t1.TABLE_NAME = t2.TABLE_NAME
+      AND t1.COLUMN_NAME = t2.COLUMN_NAME
 LEFT JOIN (
-    SELECT cols.table_name, cols.column_name
+    SELECT cols.TABLE_NAME, cols.COLUMN_NAME
     FROM user_constraints cons
     JOIN user_cons_columns cols 
-      ON cons.constraint_name = cols.constraint_name
-    WHERE cons.constraint_type = 'P'
-      AND cols.table_name = :tableName
-) pk ON t1.Table_Name = pk.table_name 
-    AND t1.Column_Name = pk.column_name
+      ON cons.CONSTRAINT_NAME = cols.CONSTRAINT_NAME
+    WHERE cons.CONSTRAINT_TYPE = 'P'
+      AND cols.TABLE_NAME = :tableName
+) pk ON t1.TABLE_NAME = pk.TABLE_NAME 
+    AND t1.COLUMN_NAME = pk.COLUMN_NAME
 WHERE NOT EXISTS (
-    SELECT t4.Object_Name
-    FROM User_objects t4
-    WHERE t4.Object_Type = 'TABLE'
-      AND t4.Temporary = 'Y'
-      AND t4.Object_Name = t1.Table_Name
+    SELECT t4.OBJECT_NAME
+    FROM user_objects t4
+    WHERE t4.OBJECT_TYPE = 'TABLE'
+      AND t4.TEMPORARY = 'Y'
+      AND t4.OBJECT_NAME = t1.TABLE_NAME
 )
   AND t1.TABLE_NAME = :tableName
-ORDER BY t1.Column_ID";
+ORDER BY t1.COLUMN_ID";
 
     public virtual string DbType2ClrType(string dbType, bool isNullable)
     {
