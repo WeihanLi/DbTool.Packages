@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/DbTool.Core/DbTool.Core.csproj" />
     <Project Path="src/DbTool.MySql/DbTool.MySql.csproj" />
+    <Project Path="src/DbTool.Oracle/DbTool.Oracle.csproj" />
     <Project Path="src/DbTool.PostgreSql/DbTool.PostgreSql.csproj" />
     <Project Path="src/DbTool.SqlServer/DbTool.SqlServer.csproj" />
   </Folder>

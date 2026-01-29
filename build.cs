@@ -8,6 +8,7 @@ using WeihanLi.Common.Helpers;
 string[] srcProjects = [ 
     "./src/DbTool.Core/DbTool.Core.csproj",
     "./src/DbTool.MySql/DbTool.MySql.csproj",
+    "./src/DbTool.Oracle/DbTool.Oracle.csproj",
     "./src/DbTool.PostgreSql/DbTool.PostgreSql.csproj",
     "./src/DbTool.SqlServer/DbTool.SqlServer.csproj"
 ];
