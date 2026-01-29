@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>DbTool.DbProvider.Oracle</RootNamespace>
+    <AssemblyName>DbTool.DbProvider.Oracle</AssemblyName>
+    <Description>
+      DbTool Oracle DbProvider
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DbTool.Core\DbTool.Core.csproj" />
+  </ItemGroup>
+</Project>

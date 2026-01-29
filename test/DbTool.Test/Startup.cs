@@ -3,6 +3,7 @@
 
 using DbTool.Core;
 using DbTool.DbProvider.MySql;
+using DbTool.DbProvider.Oracle;
 using DbTool.DbProvider.PostgreSql;
 using DbTool.DbProvider.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ public class Startup
     {
         services.AddDbProvider<SqlServerDbProvider>();
         services.AddDbProvider<MySqlDbProvider>();
+        services.AddDbProvider<OracleDbProvider>();
         services.AddDbProvider<PostgreSqlDbProvider>();
 
         services.AddSingleton<DbProviderFactory>();
